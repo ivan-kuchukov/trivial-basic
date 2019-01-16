@@ -1,0 +1,11 @@
+{
+    "repositories": {
+        "trivial": {
+            "type": "vcs",
+            "url": "https://github.com/ivan-kuchukov/trivial.git"
+        }
+    },
+    "require": {
+        "ivan-kuchukov/trivial": "*"
+    }
+}
