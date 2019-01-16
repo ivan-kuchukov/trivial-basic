@@ -5,7 +5,8 @@ use trivial\controllers\App;
 const DIR_SEP = DIRECTORY_SEPARATOR;
 const ROOT_DIR = __DIR__ . DIR_SEP . '..';
 
-require ROOT_DIR . DIR_SEP . 'vendor' . DIR_SEP . 'autoload.php';
+(@include ROOT_DIR . DIR_SEP . 'vendor' . DIR_SEP . 'autoload.php') 
+        or die("Can't find vendor/autoload. Run Composer.");
 spl_autoload_register(function ($class) {
     if ( substr($class,0,4) === "app\\" ) {
         $filename = str_replace('\\',DIR_SEP,substr($class,4)) . '.php';

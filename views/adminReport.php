@@ -1,10 +1,11 @@
 <html>
     <head>
         <title>Trivial Basic Report</title>
-        <?php trivial\models\HtmlHelper::cssRequire(['bootstrap','app']) ?>
+        <?php trivial\models\HtmlHelper::cssBlock(['bootstrap','app']) ?>
     </head>
 <body>
     
+<?php trivial\models\HtmlHelper::jsRequire(['jquery','bootstrap']) ?>    
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#trivialNavbar" aria-controls="trivialNavbar" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -41,7 +42,7 @@
     </div>
 </div>
     
-<?php trivial\models\HtmlHelper::jsRequire(['jquery','bootstrap','app']) ?>
+<?php trivial\models\HtmlHelper::jsBlock(['jquery','app']) ?>
 
 </body>
 </html>
