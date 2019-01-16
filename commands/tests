@@ -1,0 +1,49 @@
+#!/usr/bin/env php
+<?php
+
+use trivial\controllers\App;
+use trivial\models\DatabaseFactory;
+
+const DIR_SEP = DIRECTORY_SEPARATOR;
+const ROOT_DIR = __DIR__ . DIR_SEP . '..';
+
+require ROOT_DIR . DIR_SEP . 'vendor' . DIR_SEP . 'autoload.php';
+spl_autoload_register(function ($class) {
+    if ( substr($class,0,4) === "app\\" ) {
+        $filename = str_replace('\\',DIR_SEP,substr($class,4)) . '.php';
+        if (file_exists(ROOT_DIR . DIR_SEP . $filename)) {
+            include ROOT_DIR . DIR_SEP . $filename;
+        }
+    }
+});
+
+$testsPath = ROOT_DIR . DIR_SEP . App::params('testsPath');
+$unitTestsPath = $testsPath . DIR_SEP . 'unit';
+
+echo "Unit tests:" . PHP_EOL;
+$tests = [];
+foreach (scandir($unitTestsPath,SCANDIR_SORT_ASCENDING) as $filename) {
+    if ( ! is_dir($filename) && substr($filename,-4,4) == ".php" ) {
+        $tests[] = substr($filename,0,-4);
+    }
+}
+
+if ( ! isset($argv[1]) ) {
+    foreach ($tests as $test) {
+        echo " " . $test . PHP_EOL; 
+    }
+    echo PHP_EOL;
+} elseif ( $argv[1] == "run" ) {
+    foreach ($tests as $testName) {
+        echo "*** " . $testName . PHP_EOL;
+        $testName = "app\\" . App::params('testsPath') . "\unit\\" . $testName;
+        $test = new $testName;
+        $test->run();
+    }
+} elseif ( $argv[1] == "clear" ) {
+    foreach ($tests as $testName) {
+        $testName = "app\\" . App::params('testsPath') . "\unit\\" . $testName;
+        $test = new $testName;
+        $test->clear();
+    }
+}

@@ -1,0 +1,53 @@
+#!/usr/bin/env php
+<?php
+
+use trivial\controllers\App;
+use trivial\models\DatabaseFactory;
+
+const DIR_SEP = DIRECTORY_SEPARATOR;
+const ROOT_DIR = __DIR__ . DIR_SEP . '..';
+
+require ROOT_DIR . DIR_SEP . 'vendor' . DIR_SEP . 'autoload.php';
+spl_autoload_register(function ($class) {
+    if ( substr($class,0,4) === "app\\" ) {
+        $filename = str_replace('\\',DIR_SEP,substr($class,4)) . '.php';
+        if (file_exists(ROOT_DIR . DIR_SEP . $filename)) {
+            include ROOT_DIR . DIR_SEP . $filename;
+        }
+    }
+});
+
+$db = DatabaseFactory::create(App::params('db'));
+if ($db->getError('connectionCode')!==0) {
+    echo "ERROR: Can't connect to DB" . PHP_EOL;
+    exit(1);
+}
+$db->setErrorMode("debug");
+
+if ( empty($argv[1]) || empty($argv[2]) ) {
+    echo 'Syntax:' . PHP_EOL;
+    echo ' fixtures load fixtureExample' . PHP_EOL;
+    echo ' fixtures clear fixtureExample' . PHP_EOL;
+    exit();
+}
+if ( $argv[1] == 'load' ) {
+    echo "Load fixture " . $argv[2] . PHP_EOL;
+    $fixtureClass = "app\\".App::params('fixturesPath')."\\".$argv[2];
+    $fixture = new $fixtureClass($db);
+    if (!$fixture->load()) {
+        echo "ERROR while loading " . $argv[2] . PHP_EOL;
+        exit(1);
+    } else {
+        echo "All done" . PHP_EOL;
+    }
+} elseif ( $argv[1] == 'clear' ) {
+    echo "Clear " . $argv[2] . PHP_EOL;
+    $fixtureClass = "app\\".App::params('fixturesPath')."\\".$argv[2];
+    $fixture = new $fixtureClass($db);
+    if (!$fixture->clear()) {
+        echo "ERROR while clearing " . $argv[2] . PHP_EOL;
+        exit(1);
+    } else {
+        echo "All done" . PHP_EOL;
+    }
+}

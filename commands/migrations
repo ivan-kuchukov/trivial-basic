@@ -1,0 +1,135 @@
+#!/usr/bin/env php
+<?php
+
+use trivial\controllers\App;
+use trivial\models\DatabaseFactory;
+
+const DIR_SEP = DIRECTORY_SEPARATOR;
+const ROOT_DIR = __DIR__ . DIR_SEP . '..';
+
+require ROOT_DIR . DIR_SEP . 'vendor' . DIR_SEP . 'autoload.php';
+spl_autoload_register(function ($class) {
+    if ( substr($class,0,4) === "app\\" ) {
+        $filename = str_replace('\\',DIR_SEP,substr($class,4)) . '.php';
+        if (file_exists(ROOT_DIR . DIR_SEP . $filename)) {
+            include ROOT_DIR . DIR_SEP . $filename;
+        }
+    }
+});
+
+$db = DatabaseFactory::create(App::params('db'));
+if ($db->getError('connectionCode')!==0) {
+    echo "ERROR: Can't connect to DB" . PHP_EOL;
+    exit(1);
+}
+
+$db->setErrorMode("ignore");
+$appliedMigrationsQuery = $db->exec("SELECT * FROM migrations");
+$db->setErrorMode("debug");
+
+if ($db->getError('code') != 0 ) {
+    if ($db->getError('code')==1146) {
+        $db->exec("CREATE TABLE migrations (name varchar(21),time timestamp)");
+        $appliedMigrationsQuery = $db->exec("SELECT * FROM migrations");
+    } else {
+        echo "ERROR: I can't create table for migrations";
+        exit(1);
+    }
+}
+$appliedMigrations = $appliedMigrationsQuery->getAll();
+
+if ( (isset($argv[1]) && $argv[1] == 'up') || !isset($argv[1]) ) {
+    $migrationsForApply = [];
+
+    foreach (scandir(ROOT_DIR . DIR_SEP . App::params('migrationsPath'),SCANDIR_SORT_ASCENDING) as $filename) {
+        $migrationName = substr($filename,0,-4);
+        if (substr($filename,-4,4)==".php" && !array_search($migrationName,$appliedMigrations)) {
+            $apply=false;
+            foreach ($appliedMigrations as $appliedMigration) {
+                if ( $migrationName == $appliedMigration['name']) {
+                    $apply=true;
+                }
+            }
+            if(!$apply) {
+                $migrationsForApply[] = "$migrationName";
+            }
+        };
+    }
+
+    if (count($migrationsForApply)>0) {
+        echo "Migrations:" . PHP_EOL;
+        foreach ($migrationsForApply as $migration) {
+            echo " $migration" . PHP_EOL;
+        }
+    } else {
+        echo "All migrations applied" . PHP_EOL;
+        exit();
+    }
+}
+
+if ( isset($argv[1]) && $argv[1] == 'up' ) {
+    echo PHP_EOL;
+    foreach ($migrationsForApply as $migrationName) {
+        echo "*** Apply $migrationName" . PHP_EOL;
+        $migrationClass = "app\\".App::params('migrationsPath')."\\".$migrationName;
+        $migration = new $migrationClass($db);
+        if (!$migration->up()) {
+            echo "ERROR while appling $migrationName" . PHP_EOL;
+            exit(1);
+        } else {
+            $queryResult = $db->exec("INSERT INTO migrations (name,time) VALUES (?,?)"
+                    ,[$migrationName,date("Y-m-d H:i:s",time())]);
+            if (!$queryResult) { 
+                echo "ERROR while fix migration event. ".$db->error().PHP_EOL;
+                exit(1);
+            }
+        };
+        echo "Done apply $migrationName ***" . PHP_EOL;
+    }
+    echo PHP_EOL . "All migrations applied" . PHP_EOL;
+}
+
+if ( isset($argv[1]) && $argv[1] == 'down' ) {
+    echo PHP_EOL;
+    $migrationsForDown = [];
+    $counter=count($appliedMigrations);
+    while ($counter>0) {
+        $counter--;
+        $migrationName=$appliedMigrations[$counter];
+        if ( isset($argv[2]) && !is_numeric($argv[2]) ) {
+            echo "You must enter count of migrations for down" . PHP_EOL;
+            exit(1);
+        }
+        if ( isset($argv[2]) && $argv[2] == $counter ) {
+            break;
+        }       
+        $migrationsForDown[] = $migrationName;
+    }
+    if (count($migrationsForDown)>0) {
+        echo "Migrations for down:" . PHP_EOL;
+        foreach ($migrationsForDown as $migrationName) {
+            echo " " . $migrationName['name'] . PHP_EOL;
+        }
+    } else {
+        echo "No migrations for down" . PHP_EOL;
+        exit();
+    }
+    echo PHP_EOL;
+    foreach ($migrationsForDown as $migrationName) {      
+        echo "*** Down " . $migrationName['name'] . PHP_EOL;
+        $migrationClass = "app\\".App::params('migrationsPath')."\\".$migrationName['name'];
+        $migration = new $migrationClass($db);
+        if (!$migration->down()) {
+            echo "ERROR while downing " . $migrationName['name'] . PHP_EOL;
+            exit(1);
+        } else {
+            $queryResult = $db->exec("DELETE FROM migrations WHERE name=?",[$migrationName['name']]);
+            if (!$queryResult) { 
+                echo "ERROR while fix migration event. ".$db->error().PHP_EOL;
+                exit(1);
+            }
+        };
+        echo "Done down " . $migrationName['name'] . " ***" . PHP_EOL;
+    }
+    echo PHP_EOL . "Checked migrations are down" . PHP_EOL;
+}
