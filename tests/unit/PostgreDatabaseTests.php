@@ -1,7 +1,7 @@
 <?php
 
 namespace app\tests\unit;
-use trivial\models\MariaDatabase;
+use trivial\models\PostgreDatabase;
 use trivial\controllers\App;
 
 /**
@@ -9,10 +9,10 @@ use trivial\controllers\App;
  *
  * @author Ivan Kuchukov <ivan.kuchukov@gmail.com>
  */
-class MariaDatabaseTests {
+class PostgreDatabaseTests {
     private $db;
     private $n=1;
-    private $table="test56365464";
+    private $table="test95638564";
 
     /**
      * run tests
@@ -24,21 +24,21 @@ class MariaDatabaseTests {
         if ($con) {
             $this->db->setErrorMode('ignore');
             $this->clear();
-            $this->db->setErrorMode('debug');
+            $this->db->setErrorMode('display');
             $this->prepare();
             $this->validate($this->ddl());
             $this->validate($this->insert());
             $this->validate($this->select());
             $this->validate($this->insertWithBind());
-            $this->validate($this->getInsertId());
+            $this->validate($this->insertWithReturning());
             $this->validate($this->selectWithBind());
             $this->validate($this->selectArray());
             $this->validate($this->selectScalar());
             $this->validate($this->transaction());
             $this->db->setErrorMode('ignore');
             $this->validate($this->ddlError());
-            $this->db->setErrorMode('debug');
-            $this->clear();
+            $this->db->setErrorMode('display');
+            //$this->clear();
             echo 'Done!' . PHP_EOL;
         } else {
             echo 'Connection fail!' . PHP_EOL;
@@ -63,7 +63,7 @@ class MariaDatabaseTests {
 
     private function connect() {
         echo $this->n++ . ". Connect" . PHP_EOL;
-        $this->db = new MariaDatabase(App::params("db"));
+        $this->db = new PostgreDatabase(App::params("db"));
         $error = $this->db->getError('connectionCode');
         return ($error===0) ? true : false;
     }
@@ -72,8 +72,8 @@ class MariaDatabaseTests {
         echo $this->n++ . ". DDL operation" . PHP_EOL;
         return $this->db->exec(
             "CREATE TABLE " . $this->table . " ("
-                . "id int(6) NOT NULL AUTO_INCREMENT, "
-                . "number int(6), "
+                . "id serial NOT NULL, "
+                . "number integer, "
                 . "string varchar(100), "
                 . "PRIMARY KEY (id) )")->getResult();
     }
@@ -103,20 +103,22 @@ class MariaDatabaseTests {
     private function insertWithBind() {
         echo $this->n++ . ". Insert with binding (test 'ddl' is requied)" . PHP_EOL;
         return $this->db->exec(
-            "INSERT INTO " . $this->table . " (number,string) VALUES (?,?)"
+            "INSERT INTO " . $this->table . " (number,string) VALUES ($1,$2)"
             ,[[2,"i"],"text2"])->getResult();
     }
     
-    private function getInsertId() {
-        echo $this->n++ . ". Get id last inserted row (test 'insertWithBind' is requied)" . PHP_EOL;
-        return ($this->db->getInsertId()==2);
+    private function insertWithReturning() {
+        echo $this->n++ . ". Insert with returning" . PHP_EOL;
+        return ($this->db->exec("INSERT INTO " . $this->table 
+                . " (string) VALUES ($1) RETURNING id", ["insertWithReturning"])
+                ->getScalar() !== 3);
     }
     
     private function selectWithBind() {
         echo $this->n++ . ". Select with binding (test 'insertWithBind' is requied)" . PHP_EOL;
-        $sample = [ 0 => [ 'id' => 2, 'number' => 2, 'string' => "text2" ] ];
+        $sample = [ 0 => [ 'id' => '2', 'number' => '2', 'string' => "text2" ] ];
         $result = $this->db->exec(
-            "SELECT * FROM " . $this->table . " where number=?",[[2,'i']])->getAll();
+            "SELECT * FROM " . $this->table . " where number=$1",[[2,'i']])->getAll();
         if ($result===$sample) {
             return true;
         } else {
@@ -159,14 +161,8 @@ class MariaDatabaseTests {
     private function ddlError() {
         echo $this->n++ . ". DDL error operation (test 'ddl' is requied)" . PHP_EOL;
         $error = $this->db->exec(
-            "CREATE TABLE " . $this->table . " (id int(6))")->getError();
-        if ($error['code']===1050) {
-            return true;
-        } else {
-            echo "Sample: [1050] Table '" . $this->table . "' already exists" . PHP_EOL;
-            echo "Result: [" . $error['code'] . "] " . $error['description'] . PHP_EOL;
-            return false;
-        }
+            "CREATE TABLE " . $this->table . " (id integer)")->getError();
+        return !$error['code'];
     }
     
     private function transaction() {

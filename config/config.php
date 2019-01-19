@@ -16,6 +16,7 @@
         "username"=>"test", // Your database username
         "password"=>"test", // Your database password
         "database"=>"test", // Your database name
+        "persistentConnection"=>true,
     ],
     "migrationsPath"=>"migrations",
     "fixturesPath"=>"fixtures",
@@ -30,12 +31,12 @@
         'vue-dev'=>'<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>',
         'vue'=>'<script src="https://cdn.jsdelivr.net/npm/vue"></script>',
         'axios'=>'<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>',
-        'app'=>'<script src="' . $_SERVER['BASE'] .'/js/app.js"></script>',
+        'app'=>'<script src="' . (isset($_SERVER['BASE']) ? $_SERVER['BASE'] : '') .'/js/app.js"></script>',
     ],
     "includedCSS"=>[
         'fontawesome'=>'<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">',
         'bootstrap'=>'<link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap/dist/css/bootstrap.min.css"/>',
         'bootstrap-vue'=>'<link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css"/>',
-        'app'=>'<link rel="stylesheet" href="' . $_SERVER['BASE'] . '/css/app.css">',
+        'app'=>'<link rel="stylesheet" href="' . (isset($_SERVER['BASE']) ? $_SERVER['BASE'] : '') . '/css/app.css">',
     ],    
 ];
