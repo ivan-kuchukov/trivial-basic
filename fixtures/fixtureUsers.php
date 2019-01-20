@@ -1,14 +1,13 @@
 <?php
 
 namespace app\fixtures;
-use trivial\models\Migration;
 
 /**
  * Fixture
  *
  * @author Ivan Kuchukov <ivan.kuchukov@gmail.com>
  */
-class fixtureUsers extends Migration {
+class fixtureUsers {
     
     public function load() {
         $this->db->exec("INSERT INTO users (login) VALUES ('user1'),('user2')");

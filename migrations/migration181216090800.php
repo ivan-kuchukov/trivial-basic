@@ -1,14 +1,13 @@
 <?php
 
 namespace app\migrations;
-use trivial\models\Migration;
 
 /**
  * Migration for create tables
  *
  * @author Ivan Kuchukov <ivan.kuchukov@gmail.com>
  */
-class migration181216090800 extends Migration {
+class migration181216090800 {
     
     public function up() {
         return $this->db->exec("CREATE TABLE users ("
