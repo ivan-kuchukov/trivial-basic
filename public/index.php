@@ -21,4 +21,9 @@ if (App::params('displayErrors')) {
     ini_set('display_errors', 1);
 }
 
+#Alias
+function t(...$params) {
+    return \trivial\models\Translator::translate(...$params);
+}
+
 new trivial\controllers\UrlController();
