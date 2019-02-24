@@ -75,14 +75,14 @@ class PostgreDatabaseTests {
                 . "id serial NOT NULL, "
                 . "number integer, "
                 . "string varchar(100), "
-                . "PRIMARY KEY (id) )")->getResult();
+                . "PRIMARY KEY (id) )")->getStatus();
     }
     
     private function insert() {
         echo $this->n++ . ". Insert (test 'ddl' is requied)" . PHP_EOL;
         return $this->db->exec(
             "INSERT INTO " . $this->table . " (number,string) VALUES (1,'text')")
-            ->getResult();
+            ->getStatus();
     }
     
     private function select() {
@@ -104,7 +104,7 @@ class PostgreDatabaseTests {
         echo $this->n++ . ". Insert with binding (test 'ddl' is requied)" . PHP_EOL;
         return $this->db->exec(
             "INSERT INTO " . $this->table . " (number,string) VALUES ($1,$2)"
-            ,[[2,"i"],"text2"])->getResult();
+            ,[[2,"i"],"text2"])->getStatus();
     }
     
     private function insertWithReturning() {
@@ -118,7 +118,9 @@ class PostgreDatabaseTests {
         echo $this->n++ . ". Select with binding (test 'insertWithBind' is requied)" . PHP_EOL;
         $sample = [ 0 => [ 'id' => '2', 'number' => '2', 'string' => "text2" ] ];
         $result = $this->db->exec(
-            "SELECT * FROM " . $this->table . " where number=$1",[[2,'i']])->getAll();
+            "SELECT * FROM " . $this->table 
+            . " where number=:num or (number!=:num AND number=:num2)"
+            ,['num'=>[2,'i'],'num2'=>[1234567890,'i']])->getAll();
         if ($result===$sample) {
             return true;
         } else {
@@ -173,12 +175,12 @@ class PostgreDatabaseTests {
         };
         if ( ! $this->db->exec(
             "INSERT INTO " . $this->table . " (number,string) VALUES (3,'transaction')")
-            ->getResult() ) {
+            ->getStatus() ) {
             echo "Error while inserting" . PHP_EOL;
             return false;
         }
         $q = $this->db->exec("SELECT string FROM " . $this->table . " WHERE number=3");
-        if ( ! $q->getResult() ) {
+        if ( ! $q->getStatus() ) {
             echo "Error while execute select" . PHP_EOL;
             return false;
         }
@@ -198,7 +200,7 @@ class PostgreDatabaseTests {
         };
         if ( ! $this->db->exec(
             "INSERT INTO " . $this->table . " (number,string) VALUES (3,'transaction2')")
-            ->getResult() ) {
+            ->getStatus() ) {
             echo "Error while second inserting" . PHP_EOL;
             return false;
         }
