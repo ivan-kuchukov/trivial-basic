@@ -35,10 +35,12 @@ if ( ! isset($argv[1]) ) {
     echo PHP_EOL;
 } elseif ( $argv[1] == "run" ) {
     foreach ($tests as $testName) {
-        echo "*** " . $testName . PHP_EOL;
-        $testName = "app\\" . App::params('testsPath') . "\unit\\" . $testName;
-        $test = new $testName;
-        $test->run();
+        if ( !empty($argv[2]) && $argv[2] == $testName ) {
+            echo "*** " . $testName . PHP_EOL;
+            $testName = "app\\" . App::params('testsPath') . "\unit\\" . $testName;
+            $test = new $testName;
+            $test->run();
+        }
     }
 } elseif ( $argv[1] == "clear" ) {
     foreach ($tests as $testName) {

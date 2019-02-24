@@ -11,7 +11,7 @@ use trivial\controllers\App;
 class User {
 
     public function getList() {
-        return App::db()->exec('SELECT login FROM `users`')->getAll();
+        return App::db()->exec('SELECT login FROM users')->getAll();
     }
     
 }

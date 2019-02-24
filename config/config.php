@@ -11,7 +11,8 @@
     "db"=>[
         "errorLog"=>"display", // error actions: display, log, ignore 
         "queriesLog"=>true, // log ALL queries
-        "type"=>"MariaDB", // Your database type
+        "type"=>"MySQL", // Your database type: MySQL, MariaDB, PostgreSQL
+        "driver"=>"original", // Your database driver: PDO, original
         "servername"=>"localhost", // Your database address
         "username"=>"test", // Your database username
         "password"=>"test", // Your database password
