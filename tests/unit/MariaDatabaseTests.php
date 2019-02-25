@@ -22,9 +22,7 @@ class MariaDatabaseTests {
         $con = $this->connect();
         $this->validate($con);
         if ($con) {
-            $this->db->setErrorMode('ignore');
             $this->clear();
-            $this->db->setErrorMode('debug');
             $this->prepare();
             $this->validate($this->ddl());
             $this->validate($this->insert());
@@ -35,9 +33,7 @@ class MariaDatabaseTests {
             $this->validate($this->selectArray());
             $this->validate($this->selectScalar());
             $this->validate($this->transaction());
-            $this->db->setErrorMode('ignore');
             $this->validate($this->ddlError());
-            $this->db->setErrorMode('debug');
             $this->clear();
             echo 'Done!' . PHP_EOL;
         } else {
@@ -49,6 +45,8 @@ class MariaDatabaseTests {
         if ( $test ) {
             echo "\033[0;32m[Ok]\033[0;37m" . PHP_EOL;
         } else {
+            echo 'ERROR ' . $this->db->getError('code').'. ';
+            echo $this->db->getError('description') . PHP_EOL;
             echo "\033[0;31m[FAIL]\033[0;37m" . PHP_EOL;
         }
     }

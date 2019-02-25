@@ -21,7 +21,9 @@ if (App::params('displayErrors')) {
     ini_set('display_errors', 1);
 }
 
-#Alias
+/**
+ * Aliases
+ */
 function t(...$params) {
     return \trivial\models\Translator::translate(...$params);
 }

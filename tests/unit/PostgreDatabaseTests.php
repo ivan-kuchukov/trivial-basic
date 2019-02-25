@@ -22,9 +22,7 @@ class PostgreDatabaseTests {
         $con = $this->connect();
         $this->validate($con);
         if ($con) {
-            $this->db->setErrorMode('ignore');
             $this->clear();
-            $this->db->setErrorMode('display');
             $this->prepare();
             $this->validate($this->ddl());
             $this->validate($this->insert());
@@ -35,10 +33,8 @@ class PostgreDatabaseTests {
             $this->validate($this->selectArray());
             $this->validate($this->selectScalar());
             $this->validate($this->transaction());
-            $this->db->setErrorMode('ignore');
             $this->validate($this->ddlError());
-            $this->db->setErrorMode('display');
-            //$this->clear();
+            $this->clear();
             echo 'Done!' . PHP_EOL;
         } else {
             echo 'Connection fail!' . PHP_EOL;
@@ -49,6 +45,7 @@ class PostgreDatabaseTests {
         if ( $test ) {
             echo "\033[0;32m[Ok]\033[0;37m" . PHP_EOL;
         } else {
+            echo $this->db->getError('description') . PHP_EOL;
             echo "\033[0;31m[FAIL]\033[0;37m" . PHP_EOL;
         }
     }
