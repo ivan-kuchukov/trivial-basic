@@ -1,15 +1,15 @@
 <?php
 
 namespace app\tests\unit;
-use trivial\models\MariaDatabase;
+use trivial\models\MySQLDatabase;
 use trivial\controllers\App;
 
 /**
- * Tests for MariaDatabase class
+ * Tests for MySQLDatabase class
  *
  * @author Ivan Kuchukov <ivan.kuchukov@gmail.com>
  */
-class MariaDatabaseTests {
+class MySQLDatabaseTests {
     private $db;
     private $n=1;
     private $table="test56365464";
@@ -61,7 +61,7 @@ class MariaDatabaseTests {
 
     private function connect() {
         echo $this->n++ . ". Connect" . PHP_EOL;
-        $this->db = new MariaDatabase(App::params("db"));
+        $this->db = new MySQLDatabase(App::params("db"));
         $error = $this->db->getError('connectionCode');
         return ($error===0) ? true : false;
     }

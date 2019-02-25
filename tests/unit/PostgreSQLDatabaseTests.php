@@ -1,15 +1,15 @@
 <?php
 
 namespace app\tests\unit;
-use trivial\models\PostgreDatabase;
+use trivial\models\PostgreSQLDatabase;
 use trivial\controllers\App;
 
 /**
- * Tests for MariaDatabase class
+ * Tests for PostgreSQLDatabase class
  *
  * @author Ivan Kuchukov <ivan.kuchukov@gmail.com>
  */
-class PostgreDatabaseTests {
+class PostgreSQLDatabaseTests {
     private $db;
     private $n=1;
     private $table="test95638564";
@@ -60,7 +60,7 @@ class PostgreDatabaseTests {
 
     private function connect() {
         echo $this->n++ . ". Connect" . PHP_EOL;
-        $this->db = new PostgreDatabase(App::params("db"));
+        $this->db = new PostgreSQLDatabase(App::params("db"));
         $error = $this->db->getError('connectionCode');
         return ($error===0) ? true : false;
     }
