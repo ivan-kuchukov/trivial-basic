@@ -1,6 +1,7 @@
 <?php
 
 namespace app\fixtures;
+use trivial\controllers\App;
 
 /**
  * Fixture
@@ -10,12 +11,16 @@ namespace app\fixtures;
 class fixtureUsers {
     
     public function load() {
-        $this->db->exec("INSERT INTO users (login) VALUES ('user1'),('user2')");
+        $users = '';
+        for ($i=1;$i<=50;$i++) {
+            $users .= (empty($users) ? "" : ",") . "('user${i}')";
+        }
+        App::db()->exec("INSERT INTO users (login) VALUES ${users}");
         return true;
     }
     
     public function clear() {
-        $this->db->exec("DELETE FROM users");
+        App::db()->exec("DELETE FROM users");
         return true;
     }
 }

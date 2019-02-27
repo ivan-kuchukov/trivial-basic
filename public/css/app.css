@@ -1,0 +1,8 @@
+.grid-striped .row:nth-of-type(odd) {
+    background-color: rgba(0,0,0,.05);
+}
+.grid-table {
+    border: 1px solid #dee2e6;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}

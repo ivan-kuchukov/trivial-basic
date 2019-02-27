@@ -10,8 +10,16 @@ use trivial\controllers\App;
  */
 class User {
 
-    public function getList() {
-        return App::db()->exec('SELECT login FROM users')->getAll();
+    public function getList(int &$start, $size=10, int $count) {
+        $start=($count && $start>$count) ? $count : $start;
+        $start=floor(($start-1)/$size)*$size+1;
+        return App::db()->exec(
+            'SELECT login FROM users LIMIT :start,:size',
+            ['start'=>[$start-1,'i'],'size'=>[$size,'i']])->getAll();
     }
-    
+
+    public function getCount() {
+        return App::db()->exec('SELECT count(*) FROM users')->getScalar();
+    }
+
 }

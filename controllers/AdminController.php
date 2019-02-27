@@ -20,8 +20,14 @@ class AdminController extends Controller {
     }
     
     public function actionReport() {
+        $start = (int)filter_input(INPUT_GET, 'start', FILTER_SANITIZE_SPECIAL_CHARS) ?: 1;
+        $size = (int)filter_input(INPUT_GET, 'size', FILTER_SANITIZE_SPECIAL_CHARS) ?: 10;
         $user = new User();
-        $this->render( "adminReport", ['report'=>$user->getList()] );
+        $userCount = $user->getCount();
+        $this->render( "adminReport", [
+            'report'=>$user->getList($start,$size,$userCount),
+            'pagination'=>['count'=>$userCount,'start'=>$start,'size'=>$size]
+        ] );
     }
-    
+
 }

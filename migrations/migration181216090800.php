@@ -1,6 +1,7 @@
 <?php
 
 namespace app\migrations;
+use trivial\controllers\App;
 
 /**
  * Migration for create tables
@@ -10,13 +11,13 @@ namespace app\migrations;
 class migration181216090800 {
     
     public function up() {
-        return $this->db->exec("CREATE TABLE users ("
+        return App::db()->exec("CREATE TABLE users ("
             . "id int(6) NOT NULL AUTO_INCREMENT, "
             . "login varchar(4000), "
             . "PRIMARY KEY (id) )")->getResult();
     }
     
     public function down() {
-        return $this->db->exec("DROP TABLE users")->getResult();
+        return App::db()->exec("DROP TABLE users")->getResult();
     }
 }

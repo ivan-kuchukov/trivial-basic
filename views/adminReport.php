@@ -27,19 +27,24 @@
 <div class="container">
     <h2>Users</h2>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped"><thead>
-            <tr>
-                <th>Login</th>
-            </tr>
-        </thead><tbody>
-            <?php foreach ($report as $row) : ?>
-            <tr>
-                <td><?= $row['login'] ?></td>
-            </tr>
-            <?php endforeach ?>
-        </tbody></table>
+    <div class="container grid-table grid-striped">
+        <?php foreach ($report as $row) : ?>
+            <div class="row">
+                <div class="col">
+                    <?= $row['login'] ?>
+                </div>
+            </div>
+        <?php endforeach ?>
     </div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            <?php foreach (trivial\models\HtmlHelper::getPagination($pagination) as $key=>$value) : ?>
+                <li class="page-item<?= ($value!=$pagination['start']) ?: ' active' ?>">
+                    <a class="page-link" href="<?= $_SERVER['BASE'] ?>/admin/report?start=<?= $value ?>&size=<?= $pagination['size'] ?>">
+                        <?= t($key) ?></a></li>
+            <?php endforeach ?>
+        </ul>
+    </nav>
 </div>
     
 <?php trivial\models\HtmlHelper::jsBlock(['jquery','app']) ?>
