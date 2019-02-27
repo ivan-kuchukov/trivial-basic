@@ -2,7 +2,6 @@
 
 namespace app\tests\unit;
 use trivial\models\MySQLDatabase;
-use trivial\controllers\App;
 
 /**
  * Tests for MySQLDatabase class
@@ -19,6 +18,7 @@ class MySQLDatabaseTests {
      * @return boolean
      */
     public function run() {
+        echo 'Your local MySQL server must have user "test" with database "test" and password "test".' . PHP_EOL;
         $con = $this->connect();
         $this->validate($con);
         if ($con) {
@@ -55,13 +55,21 @@ class MySQLDatabaseTests {
         return;
     }
     
-    public function clear() {
+    private function clear() {
         return $this->db->exec("DROP TABLE " . $this->table);
     }
 
     private function connect() {
         echo $this->n++ . ". Connect" . PHP_EOL;
-        $this->db = new MySQLDatabase(App::params("db"));
+        $this->db = new MySQLDatabase([
+            "type"=>"MySQL",
+            "driver"=>"original",
+            "servername"=>"localhost",
+            "username"=>"test",
+            "password"=>"test",
+            "database"=>"test",
+            "persistentConnection"=>true,
+        ]);
         $error = $this->db->getError('connectionCode');
         return ($error===0) ? true : false;
     }
