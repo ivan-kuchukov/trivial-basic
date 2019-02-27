@@ -22,7 +22,6 @@ if ($db->getError('connectionCode')!==0) {
     echo "ERROR: Can't connect to DB" . PHP_EOL;
     exit(1);
 }
-$db->setErrorMode("debug");
 
 if ( empty($argv[1]) || empty($argv[2]) ) {
     echo 'Syntax:' . PHP_EOL;

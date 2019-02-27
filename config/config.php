@@ -12,12 +12,13 @@
         "errorLog"=>"display", // error actions: display, log, ignore 
         "queriesLog"=>true, // log ALL queries
         "type"=>"MySQL", // Your database type: MySQL, MariaDB, PostgreSQL
-        "driver"=>"original", // Your database driver: PDO, original
+        "driver"=>"PDO", // Your database driver: PDO, original
         "servername"=>"localhost", // Your database address
         "username"=>"test", // Your database username
         "password"=>"test", // Your database password
         "database"=>"test", // Your database name
         "persistentConnection"=>true,
+        "pdoFetch"=>\PDO::FETCH_ASSOC,
     ],
     "migrationsPath"=>"migrations",
     "fixturesPath"=>"fixtures",

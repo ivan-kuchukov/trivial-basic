@@ -71,6 +71,7 @@ class PDODatabaseTests {
             "database"=>"test",
             "persistentConnection"=>true,
         ]);
+        $this->db->fetch = \PDO::FETCH_BOTH;
         $error = $this->db->getError('connectionCode');
         return ($error===0) ? true : false;
     }
