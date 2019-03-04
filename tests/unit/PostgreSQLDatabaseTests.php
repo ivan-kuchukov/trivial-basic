@@ -39,6 +39,7 @@ class PostgreSQLDatabaseTests {
             $this->validate($this->selectScalar());
             $this->validate($this->transaction());
             $this->validate($this->ddlError());
+            $this->validate($this->getAffectedRows());
             $this->clear();
             if ($this->errors===0) {
                 echo "\033[0;32mAll Done!\033[0;37m" . PHP_EOL;
@@ -305,4 +306,23 @@ class PostgreSQLDatabaseTests {
         return true;
     }
     
+    private function getAffectedRows() {
+        echo $this->n++ . ". Get affected rows" . PHP_EOL;
+        $this->db->exec("INSERT INTO " . $this->table 
+            . " (number,string) VALUES (11,'text'),(12,'text'),(13,'text')");
+        $rows = $this->db->getAffectedRows();
+        if ($rows!==3) {
+            echo "ERROR: insert 3 rows, getAffectedRows return {$rows}." . PHP_EOL;
+            return false;
+        }
+        $this->db->exec("UPDATE " . $this->table 
+            . " SET string='text2' WHERE number IN (:num1,:num2)"
+            , ['num1'=>[11,'i'],'num2'=>[12,'i']]);
+        $rows = $this->db->getAffectedRows();
+        if ($rows!==2) {
+            echo "ERROR: update 2 rows, getAffectedRows return {$rows}." . PHP_EOL;
+            return false;
+        }
+        return true;
+    }
 }
