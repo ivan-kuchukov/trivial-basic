@@ -28,4 +28,4 @@ function t(...$params) {
     return \trivial\models\Translator::translate(...$params);
 }
 
-new trivial\controllers\UrlController();
+App::init();

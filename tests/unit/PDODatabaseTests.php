@@ -2,6 +2,7 @@
 
 namespace app\tests\unit;
 use trivial\models\PDODatabase;
+use trivial\models\Database;
 
 /**
  * Tests for PDODatabase class
@@ -12,6 +13,7 @@ class PDODatabaseTests {
     private $db;
     private $n=1;
     private $table="test56365464";
+    private $errors=0;
 
     /**
      * run tests
@@ -20,11 +22,13 @@ class PDODatabaseTests {
     public function run() {
         echo 'Your local MySQL server must have user "test" with database "test" and password "test".' . PHP_EOL;
         $con = $this->connect();
-        $error = $this->db->getError('connectionCode');
-        $this->validate($error===0);
-        if ($error===0) {
+        $this->validate($con);
+        if ($con) {
             $this->clear();
             $this->prepare();
+            $this->validate($this->errorConnect());
+            $this->validate($this->syntaxErrorWOBind());
+            $this->validate($this->syntaxErrorWBind());
             $this->validate($this->ddl());
             $this->validate($this->insert());
             $this->validate($this->select());
@@ -35,10 +39,15 @@ class PDODatabaseTests {
             $this->validate($this->transaction());
             $this->validate($this->ddlError());
             $this->clear();
-            echo 'Done!' . PHP_EOL;
+            if ($this->errors===0) {
+                echo "\033[0;32mAll Done!\033[0;37m" . PHP_EOL;
+            } else {
+                echo "\033[0;31m" . $this->errors . " error(s)!\033[0;37m" . PHP_EOL;
+                exit(1);
+            }
         } else {
-            echo 'Connection fail! ' 
-                . $this->db->getError('connectionDescription'). PHP_EOL;
+            echo 'Connection fail! ' . PHP_EOL;
+            exit(1);
         }
     }
     
@@ -46,9 +55,12 @@ class PDODatabaseTests {
         if ( $test ) {
             echo "\033[0;32m[Ok]\033[0;37m" . PHP_EOL;
         } else {
-            echo 'ERROR ' . $this->db->getError('code').'. ';
-            echo $this->db->getError('description') . PHP_EOL;
+            if (isset($this->db)) {
+                echo 'ERROR ' . $this->db->getError('code').'. ';
+                echo $this->db->getError('description') . PHP_EOL;
+            }
             echo "\033[0;31m[FAIL]\033[0;37m" . PHP_EOL;
+            $this->errors++;
         }
     }
 
@@ -57,23 +69,86 @@ class PDODatabaseTests {
     }
     
     private function clear() {
-        return $this->db->exec("DROP TABLE " . $this->table);
+        return $this->db->exec("DROP TABLE IF EXISTS " . $this->table);
     }
 
     private function connect() {
         echo $this->n++ . ". Connect" . PHP_EOL;
-        $this->db = new PDODatabase([
-            "type"=>"MySQL",
-            "driver"=>"PDO",
-            "servername"=>"localhost",
-            "username"=>"test",
-            "password"=>"test",
-            "database"=>"test",
-            "persistentConnection"=>true,
-        ]);
-        $this->db->fetch = \PDO::FETCH_BOTH;
-        $error = $this->db->getError('connectionCode');
-        return ($error===0) ? true : false;
+        try {
+            $this->db = new PDODatabase([
+                "type"=>"MySQL",
+                "driver"=>"PDO",
+                "servername"=>"localhost",
+                "username"=>"test",
+                "password"=>"test",
+                "database"=>"test",
+                "persistentConnection"=>true,
+                "attributes"=>[
+                    Database::ATTR_ERRMODE => Database::ERRMODE_EXCEPTION,
+                    Database::ATTR_DEFAULT_FETCH_MODE => Database::FETCH_BOTH,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            echo 'ERROR: '. $e->getMessage() . PHP_EOL;
+            return false;
+        }
+        return true;
+    }
+    
+    private function errorConnect() {
+        echo $this->n++ . ". Connect with wrong password" . PHP_EOL;
+        try {
+            $db = new PDODatabase([
+                "type"=>"MySQL",
+                "driver"=>"PDO",
+                "servername"=>"localhost",
+                "username"=>"test",
+                "password"=>"ERROR",
+                "database"=>"test",
+                "persistentConnection"=>true,
+            ]);
+        } catch (\Exception $e) {
+            if ($e->getCode()===1045) {
+                return true;
+            } else {
+                echo 'ERROR: catched error ' . $e->getCode() . ', but must be 1045. ';
+                return false;
+            }
+        }
+        echo 'ERROR: dont\'t catched exception! ';
+        return false;
+    }
+    
+    private function syntaxErrorWOBind() {
+        echo $this->n++ . ". Syntax error without bind" . PHP_EOL;
+        try {
+            $this->db->exec("TEST SYNTAX ERROR WITHOUT BIND")->getStatus();
+        } catch (\Exception $e) {
+            if ($e->getCode()==='42000') {
+                return true;
+            } else {
+                echo 'ERROR: catched error ' . $e->getCode() . ', but must be 1045.';
+                return false;
+            }
+        }
+        echo 'ERROR: dont\'t catched "Syntax error without bind" exception! ';
+        return false;
+    }
+    
+    private function syntaxErrorWBind() {
+        echo $this->n++ . ". Syntax error with bind" . PHP_EOL;
+        try {
+            $this->db->exec("TEST SYNTAX ERROR WITH BIND")->getStatus();
+        } catch (\Exception $e) {
+            if ($e->getCode()==='42000') {
+                return true;
+            } else {
+                echo 'ERROR: catched error ' . $e->getCode() . ', but must be 1045.';
+                return false;
+            }
+        }
+        echo 'ERROR: dont\'t catched "Syntax error with bind" exception! ';
+        return false;
     }
 
     private function ddl() {
@@ -145,11 +220,24 @@ class PDODatabaseTests {
     private function selectArray() {
         echo $this->n++ . ". Select array (test 'insertWithBind' is requied)" . PHP_EOL;
         $sample = [ 
-            'id' => "2", 0 => "2",
-            'number' => "2", 1 => "2",
-            'string' => "text2", 2 => "text2" ];
-        $result = $this->db->exec(
-            "SELECT * FROM " . $this->table . " WHERE number=2")->getArray();
+            0 => [
+                'id' => "1", 0 => "1",
+                'number' => "1", 1 => "1",
+                'string' => "text", 2 => "text"
+            ],
+            1 => [
+                'id' => "2", 0 => "2",
+                'number' => "2", 1 => "2",
+                'string' => "text2", 2 => "text2"
+            ],
+            2 => null,
+        ];
+        $data = $this->db->exec("SELECT * FROM " . $this->table 
+            . " WHERE id IN (1,2) ORDER BY id");
+        $result = [];
+        $result[0] = $data->getArray();
+        $result[1] = $data->getArray();
+        $result[2] = $data->getArray();
         if ($result===$sample) {
             return true;
         } else {
@@ -162,8 +250,11 @@ class PDODatabaseTests {
     
     private function selectScalar() {
         echo $this->n++ . ". Select scalar (test 'insertWithBind' is requied)" . PHP_EOL;
-        $sample = "text2";
-        $result = $this->db->exec("SELECT string FROM " . $this->table . " WHERE number=2")->getScalar();
+        $sample = ["text2",null];
+        $data = $this->db->exec("SELECT string FROM " . $this->table . " WHERE number=2");
+        $result = [];
+        $result[0] = $data->getScalar();
+        $result[1] = $data->getScalar();
         if ($result===$sample) {
             return true;
         } else {
@@ -176,15 +267,18 @@ class PDODatabaseTests {
     
     private function ddlError() {
         echo $this->n++ . ". DDL error operation (test 'ddl' is requied)" . PHP_EOL;
-        $error = $this->db->exec(
-            "CREATE TABLE " . $this->table . " (id int(6))")->getError();
-        if ($error['code']==='42S01') {
-            return true;
-        } else {
-            echo "Sample: [42S01] Table '" . $this->table . "' already exists" . PHP_EOL;
-            echo "Result: [" . $error['code'] . "] " . $error['description'] . PHP_EOL;
-            return false;
+        try {
+            $this->db->exec("CREATE TABLE " . $this->table . " (id int(6))");
+        } catch (\Exception $e) {
+            if ($e->getCode()==='42S01') {
+                return true;
+            } else {
+                echo 'ERROR: catched error ' . $e->getCode() . ', but must be "42S01". ';
+                return false;
+            }
         }
+        echo 'ERROR: dont\'t catched "DDL error operation" exception! ';
+        return false;
     }
     
     private function transaction() {
