@@ -23,9 +23,9 @@ if ($db->getError('connectionCode')!==0) {
     exit(1);
 }
 
-$db->setErrorMode("ignore");
+$db->logger->errorLog = "ignore";
 $appliedMigrationsQuery = $db->exec("SELECT * FROM migrations");
-$db->setErrorMode("debug");
+$db->logger->errorLog = "debug";
 
 if ($db->getError('code') != 0 ) {
     if ($db->getError('code')==1146) {
@@ -62,7 +62,7 @@ if ( (isset($argv[1]) && $argv[1] == 'up') || !isset($argv[1]) ) {
             echo " $migration" . PHP_EOL;
         }
     } else {
-        echo "All migrations applied" . PHP_EOL;
+        echo "No migrations for apply" . PHP_EOL;
         exit();
     }
 }
