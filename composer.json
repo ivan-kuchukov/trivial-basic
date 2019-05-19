@@ -1,4 +1,12 @@
 {
+    "name": "trivial/trivial-basic",
+    "description": "Basic Template (powered with trivial-framework)",
+    "authors": [
+        {
+            "name": "Ivan Kuchukov",
+            "email": "ivan.kuchukov@gmail.com"
+        }
+    ],
     "repositories": {
         "trivial": {
             "type": "vcs",
@@ -7,5 +15,8 @@
     },
     "require": {
         "ivan-kuchukov/trivial": "*"
-    }
+    },
+    "config": {
+        "preferred-install": "dist"
+    } 
 }
